@@ -451,7 +451,7 @@ while count < fim:
       token_temp.append(texto[count])
       state=9
     else:
-      #print('Inteiro 1 digito ',''.join(token_temp))
+      print('Inteiro 1 digito ',''.join(token_temp))
       tokens_totais=Distribui_tokens(''.join(token_temp),tokens_totais,count,tipo='numero')
       token_temp=[]
       state=0
@@ -464,7 +464,7 @@ while count < fim:
       token_temp.append(texto[count])
       state = 18 
     else:
-      #print('Inteiro n digitos ',''.join(token_temp))
+      print('Inteiro n digitos ',''.join(token_temp))
       tokens_totais=Distribui_tokens(''.join(token_temp),tokens_totais,count,tipo='numero')
       token_temp=[]
       state=0
@@ -508,7 +508,7 @@ while count < fim:
       state=21
       token_temp.append(texto[count])
     else:
-      #print('Float tipo x.xxxx',''.join(token_temp))
+      print('Float tipo x.xxxx',''.join(token_temp))
       tokens_totais=Distribui_tokens(''.join(token_temp),tokens_totais,count,tipo='numero')
       state=0
       token_temp=[]
@@ -534,7 +534,7 @@ while count < fim:
       state=15
       token_temp.append(texto[count])
     else:
-      #print('Exponencial do tipo +x.xxxxe+x',''.join(token_temp))
+      print('Exponencial do tipo +x.xxxxe+x',''.join(token_temp))
       tokens_totais=Distribui_tokens(''.join(token_temp),tokens_totais,count,tipo='numero')
       state=0
       token_temp=[]
@@ -563,7 +563,7 @@ while count < fim:
       token_temp.append(texto[count])
       state = 18 
     else:
-      #print('Inteiro n digitos ',''.join(token_temp))
+      
       tokens_totais=Distribui_tokens(''.join(token_temp),tokens_totais,count,tipo='moeda')
       token_temp=[]
       state=0
@@ -647,8 +647,6 @@ while count < fim:
     pass
   
 
-#print(tokens_totais,erros)
-
 #######################GERANDO RELATORIO####################################
 
 quebra_rec=[]
@@ -687,7 +685,7 @@ for token, entries in tokens_totais.items():
       if len(linha) > 0:
         dataTable1['posicao na entrada'].append(f'({int(linha[0]+1)},{int(coluna[0]+1)})')
       else:
-        # handle the case where linha is empty, for example by appending a default value
+        
         dataTable1['posicao na entrada'].append('(N/A)')
 
 dataFrame=pd.DataFrame(dataTable1)
@@ -701,7 +699,7 @@ for index,row in tabela2.iterrows():
   resumo['usos'].append(len(row['posicao na entrada']))
   resumo['token'].append(index)
 resumo=pd.DataFrame(resumo)
-#inserir os casos 0 uso se existir
+
 total_sum = resumo['usos'].sum()
 diferenca=set(tokens_totais.keys()) - set(dataFrame['token'].value_counts().index)
 for e in diferenca:
