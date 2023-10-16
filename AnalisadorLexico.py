@@ -2,9 +2,12 @@ import re
 import numpy as np
 import pandas as pd
 
+"""
+A funcao Distribui_tokens é usada para classificar e distribuir "tokens" com base em seu tipo e prefixo 'tk_' correspondente em um dicionário chamado tokens_totais. Ela lida com vários tipos de tokens, como identificadores, números, operadores, palavras-chave, etc., e os armazena nas listas apropriadas dentro do dicionário tokens_totais. A função é usada para construir ou atualizar uma tabela de símbolos durante a análise de código
+"""
 def Distribui_tokens(t_temp,tokens_totais,pos_atual,tipo):
   termo='tk_'+t_temp.lower()
-  if termo in list(tokens_totais.keys())[:17] and tipo =='identificador':
+  if termo in list(tokens_totais.keys())[:8] and tipo =='identificador':
     print(termo)
     tokens_totais[termo].append((t_temp,pos_atual-len(t_temp)))
   elif tipo == 'numero':
@@ -12,7 +15,7 @@ def Distribui_tokens(t_temp,tokens_totais,pos_atual,tipo):
   elif termo in list(tokens_totais.keys())[:-1] and tipo == ':':
     tokens_totais['tk_:'].append((t_temp,pos_atual-len(t_temp)))
   elif termo in list(tokens_totais.keys())[:-1] and tipo == ',':
-    tokens_totais['tk_)'].append((t_temp,pos_atual-len(t_temp)))
+    tokens_totais['tk_,)'].append((t_temp,pos_atual-len(t_temp)))
   elif termo in list(tokens_totais.keys())[:-1] and tipo == '(':
     tokens_totais['tk_('].append((t_temp,pos_atual-len(t_temp)))
   elif tipo == 'funcao':
@@ -64,13 +67,14 @@ def Distribui_tokens(t_temp,tokens_totais,pos_atual,tipo):
     tokens_totais['tk_IDs'].append((t_temp,pos_atual-len(t_temp)))
   return tokens_totais
 # Abrir o arquivo de texto em modo de leitura
-with open('ex1.cic', 'r') as file:
+with open('ex3.cic', 'r') as file:
 
     # Ler todo o conteúdo do arquivo e armazená-lo em uma string
-    ex1 = file.read()
-lista=list(ex1)
+    ex3 = file.read()
+lista=list(ex3)
 lista=['\n']+lista+['\n']
 textotemp=''.join(lista)
+#print(textotemp)
 
 texto=textotemp+' '
 state = 0
@@ -85,6 +89,8 @@ tokens_totais ={
                 'tk_leia':[],
                 'tk_imprima':[],
                 'tk_enquanto':[],
+
+  #####################################
                 'tk_menor_igual':[],
                 'tk_atribuicao':[],
                 'tk_diferente':[],
@@ -118,15 +124,25 @@ closeComent=False
 quebraLinha=[]
 erros=[]
 while count < fim:
-  #print(texto[count])
+#print(texto[count])
+  """
+  Comeca verificando o valor da variável state. Se state for igual a 0, isso indica que está no estado inicial.
+  Em seguida, ele verifica o caractere atual em texto[count] usando expressões regulares (re.match). Dependendo do caractere, ele atualiza o estado (a variável state) e adiciona o caractere à lista token_temp.
+  Cada if ou elif verifica se o caractere em texto[count] corresponde a um padrão específico.
+  Se o caractere corresponder a um padrão, ele atualiza o valor de state para um número correspondente, adiciona o caractere ao token_tem.
+  Se o caractere não corresponder a nenhum dos padrões, ele reinicializa state para 0 e esvazia token_temp.
+  """
   if state == 0:
-    if re.match('[|]', texto[count]):#
+    if re.match('[#]', texto[count]):#
+      state=12
+      token_temp.append( texto[count])
+    elif re.match('[|]', texto[count]):#
       state=47
       token_temp.append( texto[count])
     elif re.match('[:]', texto[count]):#diferente
       state=45
       token_temp.append( texto[count])
-    elif re.match('[&]]', texto[count]):#moeda
+    elif re.match('[&]', texto[count]):#moeda
       state=44
       token_temp.append( texto[count])
     elif re.match('[!]', texto[count]):#diferente
@@ -181,33 +197,33 @@ while count < fim:
 
 
 
-  elif state == 1:
-    if re.match('[0-9A-F]', texto[count]):# numeros
+  elif state == 7:
+    if re.match('[A-F]', texto[count]):# numeros
       state=16
       token_temp.append( texto[count])
-    elif re.match('[^\d.!@#$%¨&*]', texto[count]):# soma ou subtracao
-      print('soma ou subtracao',''.join(token_temp))
-      tokens_totais=Distribui_tokens(''.join(token_temp),tokens_totais,count,tipo='operacao_sum_sub')
-      token_temp=[]
-      state=0
-      count=count-1
+    elif re.match('[^\d.!@#$%¨&*]', texto[count]):# 
+      print('',''.join(token_temp))
     else:
       erros.append(('erro sinal ',texto[count],count))
       state=0
       token_temp=[]
       count=count-1
   elif state == 8:
-    if re.match('[<>]', texto[count]):# numeros
+    if re.match('[<]', texto[count]):
       state=10
       token_temp.append( texto[count])
     else:
-      erros.append(('erro de funcao',texto[count],count))
+      erros.append(('erro de cadeia',texto[count],count))
       state=0
       token_temp=[]
       count=count-1
-  elif state == 14:
+  elif state == 29:
     if re.match('[^"\n]', texto[count]):# cadeia
-      state=16
+      state=29
+      token_temp.append( texto[count])
+  elif state == 29:
+    if re.match('[^"\n]', texto[count]):# cadeia
+      state=30
       token_temp.append( texto[count])
     elif re.match('["]', texto[count]):
       token_temp.append( texto[count])
@@ -215,7 +231,6 @@ while count < fim:
       print("cadeia",''.join(token_temp))
       state=0
       token_temp=[]
-
     else:
       erros.append(('erro de cadeia',texto[count],count))
       print("ERRO de cadeia")
@@ -223,7 +238,7 @@ while count < fim:
       token_temp=[]
       count=count-1
   elif state == 40:
-    if re.match('.', texto[count]):
+    if re.match('', texto[count]):
       state=0
       tokens_totais=Distribui_tokens(''.join(token_temp),tokens_totais,count,tipo='(')
       print("Parentese aberto",''.join(token_temp))
@@ -236,15 +251,13 @@ while count < fim:
   elif state == 41:
     
     if re.match('.', texto[count]):
-      print('1')
+      print('')
       print("Parentese fechado",''.join(token_temp))
       tokens_totais=Distribui_tokens(''.join(token_temp),tokens_totais,count,tipo=')')
       state=0
       token_temp=[]
       count=count-1
     else:
-      print("Parentese fechado",''.join(token_temp))
-      tokens_totais=Distribui_tokens(''.join(token_temp),tokens_totais,count,tipo=')')
       state=0
       token_temp=[]
   elif state == 8:
@@ -257,8 +270,8 @@ while count < fim:
       token_temp=[]
       count=count-1
   elif state==10:
-    if re.match('[A-Za-z]', texto[count]):
-      state=24
+    if re.match('[A-Z a-z 0-9]', texto[count]):
+      state=11
       token_temp.append( texto[count])
     elif re.match("[ ,\n( )]",texto[count]):
       print("Identificador",''.join(token_temp))
@@ -279,8 +292,8 @@ while count < fim:
       state=0
       token_temp=[]
       count=count-1
-  elif state==12:#//joao
-    if re.match('[#]',texto[count]):#estrutura para verificar fim da string
+  elif state==12:#comentario linha
+    if re.match('[A-Z a-z 0-9]',texto[count]):
       state=12
       token_temp.append(texto[count])
     elif re.match('[\n]',texto[count]):
@@ -293,23 +306,7 @@ while count < fim:
       state=0
       token_temp=[]
       count=count-1
-  elif state == 14:
-    if re.match('[```]',texto[count]):######
-        if re.match('[\n]',texto[count]):
-            quebraLinha.append(count)
-        else:
-          pass
-        state=14
-        token_temp.append(texto[count])
-    elif re.match('[```]',texto[count]):
-      token_temp.append(texto[count])
-      state=14
-    else:
-      erros.append(('erro de comentario em bloco',texto[count],count))
 
-      token_temp=[]
-      state=0
-      count=count-1
   elif state==14:
     if re.match('[```]',texto[count]):
       state=14
@@ -451,7 +448,7 @@ while count < fim:
       token_temp.append(texto[count])
       state=9
     else:
-      print('Inteiro 1 digito ',''.join(token_temp))
+      #print('Inteiro 1 digito ',''.join(token_temp))
       tokens_totais=Distribui_tokens(''.join(token_temp),tokens_totais,count,tipo='numero')
       token_temp=[]
       state=0
@@ -464,7 +461,7 @@ while count < fim:
       token_temp.append(texto[count])
       state = 18 
     else:
-      print('Inteiro n digitos ',''.join(token_temp))
+      #print('Inteiro n digitos ',''.join(token_temp))
       tokens_totais=Distribui_tokens(''.join(token_temp),tokens_totais,count,tipo='numero')
       token_temp=[]
       state=0
@@ -586,8 +583,7 @@ while count < fim:
       state=0
       token_temp=[]
       count=count-1
-
-
+      
   elif state == 45:
     if re.match('.', texto[count]):
       state=0
@@ -648,10 +644,12 @@ while count < fim:
   
 
 #######################GERANDO RELATORIO####################################
-
-quebra_rec=[]
-linhas_colunas=[]
-final=[]
+"""
+Processa um texto para identificar quebras de linha e, em seguida, organiza essas informações em uma estrutura de dados bidimensional usando a biblioteca NumPy. 
+"""
+quebra_rec=[]# é uma lista vazia que será usada para armazenar as posições de quebra de linha no texto
+linhas_colunas=[]# será usada para armazenar tuplas representando o início e o fim de cada quebra de linha
+final=[]#será usada para armazenar as informações das quebras de linha em um formato organizado.
 for k,c in enumerate(texto):
   if re.match('[\n]',c):
     quebra_rec.append(k)
@@ -676,6 +674,9 @@ for comentario,caracter_erro,pos_erro in erros:
 print(erros_para_relatorio)
  #######################################PREENCHER TABELA1#######################
 
+"""
+coleta informações sobre tokens encontrados no código, organiza essas informações em tabelas e gera um resumo de uso de tokens, incluindo informações sobre tokens ausentes na lista original de tokens esperados. O resultado final é uma análise detalhada do uso de tokens no código processado.
+"""
 dataTable1 = {'token': [], 'lexema': [], 'posicao na entrada': []}
 for token, entries in tokens_totais.items():
     for  position in entries:
@@ -710,6 +711,11 @@ print(resumo)
 
 
 ##########################MOSTRANDO ERROS########################
+
+"""
+A funcao decora_erros é usada para destacar e exibir erros léxicos, adicionando setas e mensagens de erro nas posições onde ocorreram os erros. 
+Quando a função decora_erros é chamada com texto e erros_para_relatorio, ela irá destacar e exibir os erros léxicos no código, mostrando a posição dos erros como estava no enunciado do trabalho
+"""
 def decora_erros(texto, posicoes):
     linhas = texto.split('\n')
     num_linhas = len(str(len(linhas) - 2))
